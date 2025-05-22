@@ -2,19 +2,26 @@ import express from "express";
 import { env } from "./config/env";
 import { MongoGetUsersRepository } from "./repositories/get-users/mongo-get-users";
 import { GetUsersController } from "./controllers/get-users/get-users";
+import { MongoClient } from "./database/mongo";
 
-const app = express();
+const main = async () => {
+  const app = express();
 
-app.get("/users", async (req, res) => {
-  const mongoGetUsersRepository = new MongoGetUsersRepository();
-  
-  const getUsersController = new GetUsersController(mongoGetUsersRepository);
+  await MongoClient.connect();
 
-  const {body, statusCode} = await getUsersController.handle();
+  app.get("/users", async (req, res) => {
+    const mongoGetUsersRepository = new MongoGetUsersRepository();
 
-  res.send(body).status(statusCode);
-});
+    const getUsersController = new GetUsersController(mongoGetUsersRepository);
 
-app.listen(env.PORT, () => {
-  console.log(`Server is running on port http://localhost:${env.PORT}`);
-});
+    const { body, statusCode } = await getUsersController.handle();
+
+    res.send(body).status(statusCode);
+  });
+
+  app.listen(env.PORT, () => {
+    console.log(`Server is running on port http://localhost:${env.PORT}`);
+  });
+};
+
+main();
